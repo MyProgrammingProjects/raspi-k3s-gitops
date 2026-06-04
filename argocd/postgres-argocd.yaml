@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-argocd
+  namespace: argocd
+  labels:
+    name: postgres
+    tier: database
+spec:
+  project: default
+
+  source:
+    repoURL: git@github.com:MyProgrammingProjects/raspi-k3s-helm-charts.git
+    targetRevision: main
+    path: db/helm
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: databases
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+
