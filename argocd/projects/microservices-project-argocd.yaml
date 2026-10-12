@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: microservices-project
+  namespace: argocd
+spec:
+  description: Microservices project for ArgoCD
+  sourceRepos:
+    - git@github.com:MyProgrammingProjects/raspi-k3s-helm-charts.git
+  destinations:
+    - namespace: prod
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: apps
+      kind: Deployment
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Secret
+  clusterResourceBlacklist:
+    - group: ""
+      kind: PersistentVolume
+    - group: ""
+      kind: StorageClass
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+  roles:
+  - name: dev-readonly
+    description: Read-only access for developers
+    policies:
+      - p, proj:microservices-project:dev-readonly, applications, get, microservices-project/*, allow
+    groups:
+      - microservices-devs
+
+  - name: platform-admin
+    description: Full control for platform team
+    policies:
+      - p, proj:microservices-project:platform-admin, applications, *, microservices-project/*, allow
+    groups:
+      - platform-team

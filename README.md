@@ -68,6 +68,10 @@ The Argo CD web UI and SSO components were intentionally omitted.
 Each application is managed through a dedicated Argo CD Application manifest.
 
 ```text
+projects/
+├── microservices-db-project-argocd.yaml
+└── microservices-project-argocd.yaml
+
 applications/
 ├── postgres-argocd.yaml
 ├── gateway-argocd.yaml
@@ -82,6 +86,62 @@ This approach keeps manifests:
 * isolated
 * easier to maintain
 * independently deployable
+
+
+### Argo CD Projects and Deployment Guardrails
+
+Previously, all applications relied on Argo CD's `default` project. I introduced two dedicated AppProjects to establish explicit deployment boundaries for the microservices and their PostgreSQL database.
+
+#### Source Repositories
+
+Both projects restrict their applications to the following Git repository:
+
+- `git@github.com:MyProgrammingProjects/raspi-k3s-helm-charts.git`
+
+This limits the Git repository from which applications managed by these projects can retrieve their deployment configuration.
+
+#### Deployment Destinations
+
+Each project is restricted to a specific namespace on the local Kubernetes cluster:
+
+- **microservices-project:** `prod`
+- **microservices-db-project:** `databases`
+
+Both destinations use `https://kubernetes.default.svc` as the cluster identifier.
+
+This separates the deployment targets for the application workloads and the database.
+
+#### Kubernetes Resource Restrictions
+
+The projects explicitly allow the following namespaced resource kinds:
+
+- **microservices-project:** Deployments, Services, ConfigMaps, and Secrets.
+- **microservices-db-project:** StatefulSets, Services, ConfigMaps, and Secrets.
+
+Both projects allow the creation of the `Namespace` cluster-scoped resource. They also explicitly blacklist PersistentVolumes, StorageClasses, ClusterRoles, and ClusterRoleBindings.
+
+These restrictions limit the types of Kubernetes resources that applications can manage through Argo CD. They also prevent these projects from managing the explicitly blacklisted resource kinds.
+
+#### Project-Scoped RBAC (Design)
+
+The AppProject manifests also include example role definitions to illustrate how project-scoped RBAC can be structured.
+
+The intended configuration defines two roles:
+
+- **dev-readonly:** Intended to allow the `microservices-devs` group to view applications within the project.
+- **platform-admin:** Intended to allow the `platform-team` group to perform all application actions within the project.
+
+These definitions demonstrate how Argo CD application permissions can be scoped to individual projects, separating GitOps operations from Kubernetes RBAC.
+
+**Limitation:** This RBAC configuration is illustrative, not an active access-control mechanism in my current Argo CD Core installation. The role definitions document the intended authorization model, but they should not be interpreted as enforced permissions in this environment. The reason is that Argo CD RBAC model is a feature not available on Argo CD Core.
+
+Together, these AppProjects establish explicit boundaries for repository access, deployment destinations, permitted resource kinds, and Argo CD application operations.
+
+These projects allow me to restrict the repositories applications can use, their deployment destinations, and the Kubernetes resource kinds they are permitted to manage.
+
+Separating the project definitions from the application manifests also makes these policies easier to review and maintain alongside the rest of the GitOps configuration.
+
+The next step is to use project-scoped RBAC roles to define which authenticated identities or automation clients can view and operate applications within each project. This is GitOps RBAC, not Kubernetes RBAC. 
 
 ---
 
@@ -265,5 +325,11 @@ The cluster is currently managed through a GitOps workflow where Argo CD continu
 * Search API
 
 All applications are deployed from Git repositories and maintained in a synchronized state through automated reconciliation.
+Applied manifests to create the two new Argo CD projects
 
-![ArgoCD Apps List](./images/argocd_apps_list.png)
+![Argo CD](./images/argocd-projects-manifest-applied.png "argocd configurations")
+
+
+Argo CD application now present projects that were created and not _default_  project.
+
+![Argo CD](./images/argocd-applications.png "argocd configurations")

@@ -1,18 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: users-microservice-argocd
+  name: accounts-microservice-argocd
   namespace: argocd
   labels:
-    name: users
+    name: accounts
     tier: backend
 spec:
-  project: default
+  project: microservices-project
 
   source:
     repoURL: git@github.com:MyProgrammingProjects/raspi-k3s-helm-charts.git
     targetRevision: main
-    path: users-service/helm
+    path: accounts-service/helm
 
   destination:
     server: https://kubernetes.default.svc

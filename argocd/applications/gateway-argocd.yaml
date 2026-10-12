@@ -1,22 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: postgres-argocd
+  name: gateway-argocd
   namespace: argocd
   labels:
-    name: postgres
-    tier: database
+    name: gateway
+    tier: backend
 spec:
-  project: default
+  project: microservices-project
 
   source:
     repoURL: git@github.com:MyProgrammingProjects/raspi-k3s-helm-charts.git
     targetRevision: main
-    path: db/helm
+    path: gateway-service/helm
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: databases
+    namespace: prod
 
   syncPolicy:
     syncOptions:
