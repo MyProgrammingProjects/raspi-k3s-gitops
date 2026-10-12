@@ -143,6 +143,9 @@ Separating the project definitions from the application manifests also makes the
 
 The next step is to use project-scoped RBAC roles to define which authenticated identities or automation clients can view and operate applications within each project. This is GitOps RBAC, not Kubernetes RBAC. 
 
+
+Argo CD manifest for projects and applications can be found on the [argocd](https://github.com/MyProgrammingProjects/raspi-k3s-gitops/tree/main/argocd) folder
+
 ---
 
 # GitOps Workflow
